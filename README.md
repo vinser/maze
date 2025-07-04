@@ -1,5 +1,5 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/vinser/maze.svg)](https://pkg.go.dev/github.com/vinser/maze)
-![GitHub License](https://img.shields.io/github/license/vinser/maze)
+![GitHub Tag](https://img.shields.io/github/v/tag/vinser/maze)
 [![Go Report Card](https://goreportcard.com/badge/github.com/vinser/maze)](https://goreportcard.com/report/github.com/vinser/maze)
 [![codecov](https://codecov.io/github/vinser/maze/graph/badge.svg)](https://codecov.io/github/vinser/maze)
 ![Static Badge](https://img.shields.io/badge/Gemini-Code%20Assisted-blue)
