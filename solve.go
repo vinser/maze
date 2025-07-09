@@ -51,19 +51,23 @@ func (m *Maze) Solve() ([]Point, bool) {
 
 	// If a path was found, backtrack to reconstruct it.
 	if pathFound {
-		// Reconstruct the full path from Start to End.
-		var fullPath []Point
+		// Reconstruct the path by walking backwards from the end.
+		// First, determine the length to pre-allocate the slice.
+		pathLen := 1
 		p := m.end
-		for {
-			fullPath = append(fullPath, p)
-			if p == m.start {
-				break
-			}
+		for p != m.start {
 			p = parent[p]
+			pathLen++
 		}
-		// Reverse the path to go from Start to End.
-		for i, j := 0, len(fullPath)-1; i < j; i, j = i+1, j-1 {
-			fullPath[i], fullPath[j] = fullPath[j], fullPath[i]
+
+		// Allocate the slice and fill it from back to front, which avoids a separate reverse step.
+		fullPath := make([]Point, pathLen)
+		p = m.end
+		for i := pathLen - 1; i >= 0; i-- {
+			fullPath[i] = p
+			if i > 0 { // The start point has no parent in the map.
+				p = parent[p]
+			}
 		}
 		return fullPath, true
 	}
