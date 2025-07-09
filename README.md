@@ -94,9 +94,9 @@ mazegen --width=51 --height=25 --seed=1337 --bias=0.95
   -doorY int
     	The Y coordinate for the den door. If 0, a random door is chosen.
   -endX int
-		The X coordinate for the maze end point. If 0, a random point is chosen.
+	The X coordinate for the maze end point. If 0, a random point is chosen.
   -endY int
-		The Y coordinate for the maze end point. If 0, a random point is chosen.
+	The Y coordinate for the maze end point. If 0, a random point is chosen.
   -height int
     	The height of the maze (default 21)
   -seed int64
