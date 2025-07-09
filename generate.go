@@ -8,19 +8,27 @@ import (
 // Generate creates the maze paths using an iterative randomized depth-first search.
 // It takes a seed for reproducibility, an optional start point, and a bias
 // that controls the straightness of corridors.
-func (m *Maze) Generate(seed int64, start *Point, door *Point, doorSide string, bias float64) error {
+func (m *Maze) Generate(seed int64, start, end *Point, door *Point, doorSide string, bias float64) error {
 	r := rand.New(rand.NewSource(seed))
 	var generationStart Point
 
-	// 1. Choose a starting point.
+	// 1. Validate user-provided start and end points.
 	if start != nil {
-		// Use the provided start point after validation.
-		if start.X <= 0 || start.X >= m.width-1 || start.Y <= 0 || start.Y >= m.height-1 || start.X%2 == 0 || start.Y%2 == 0 {
-			return fmt.Errorf("invalid start point: %+v. must be within maze bounds and have odd coordinates", *start)
+		if err := m.validatePoint(*start, "start"); err != nil {
+			return err
 		}
-		if m.IsInsideDen(*start) {
-			return fmt.Errorf("invalid start point: %+v. cannot start generation inside the den", *start)
+	}
+	if end != nil {
+		if err := m.validatePoint(*end, "end"); err != nil {
+			return err
 		}
+	}
+	if start != nil && end != nil && *start == *end {
+		return fmt.Errorf("start and end points cannot be the same")
+	}
+
+	// 2. Choose a starting point for the generation algorithm.
+	if start != nil {
 		generationStart = *start
 	} else {
 		// Choose a random starting point (must be on a path cell, so odd coordinates).
@@ -29,24 +37,36 @@ func (m *Maze) Generate(seed int64, start *Point, door *Point, doorSide string, 
 			startX := r.Intn((m.width-1)/2)*2 + 1
 			startY := r.Intn((m.height-1)/2)*2 + 1
 			p := Point{X: startX, Y: startY}
-			if !m.IsInsideDen(p) {
+			// Also ensure the random start isn't the user-specified end point.
+			if !m.IsInsideDen(p) && (end == nil || p != *end) {
 				generationStart = p
 				break
 			}
 		}
 	}
 
-	// 2. Run the generation algorithm.
+	// 3. Run the generation algorithm.
 	m.runDFS(r, generationStart, bias)
 
-	// 3. If a den exists, create a single door to connect it to the maze.
+	// 4. If a den exists, create a single door to connect it to the maze.
 	if err := m.connectDen(r, door, doorSide); err != nil {
 		return err
 	}
 
-	// 4. Set the Start and End points for the maze.
-	m.placeStartAndEnd(generationStart, start != nil)
+	// 5. Set the Start and End points for the maze.
+	m.placeStartAndEnd(generationStart, start, end)
 
+	return nil
+}
+
+// validatePoint checks if a point is a valid location for a start or end marker.
+func (m *Maze) validatePoint(p Point, pointType string) error {
+	if p.X <= 0 || p.X >= m.width-1 || p.Y <= 0 || p.Y >= m.height-1 || p.X%2 == 0 || p.Y%2 == 0 {
+		return fmt.Errorf("invalid %s point: %+v. must be within maze bounds and have odd coordinates", pointType, p)
+	}
+	if m.IsInsideDen(p) {
+		return fmt.Errorf("invalid %s point: %+v. cannot be inside the den", pointType, p)
+	}
 	return nil
 }
 
@@ -132,17 +152,21 @@ func chooseBiasedNeighbor(neighbors []Point, stack []Point, bias float64, r *ran
 }
 
 // placeStartAndEnd determines and sets the Start and End points on the maze grid.
-func (m *Maze) placeStartAndEnd(generationStart Point, useProvidedStart bool) {
-	if useProvidedStart {
-		m.start = generationStart
+func (m *Maze) placeStartAndEnd(generationStart Point, userStart, userEnd *Point) {
+	if userStart != nil {
+		m.start = *userStart
 	} else {
 		// If no start point was provided, find the longest path in the maze.
 		// The start of the longest path is the point farthest from the generation start.
 		m.start, _ = m.findFarthestPoint(generationStart)
 	}
 
-	// The end of the longest path is the point farthest from our new start point.
-	m.end, _ = m.findFarthestPoint(m.start)
+	if userEnd != nil {
+		m.end = *userEnd
+	} else {
+		// The end of the longest path is the point farthest from our new start point.
+		m.end, _ = m.findFarthestPoint(m.start)
+	}
 
 	// Place Start and End markers on the grid.
 	m.grid[m.start.Y][m.start.X] = Start

@@ -17,7 +17,7 @@ func ExampleNew() {
 	}
 
 	// Generate the maze paths with a fixed seed for reproducibility.
-	err = m.Generate(42, nil, nil, "", 0.5)
+	err = m.Generate(42, nil, nil, nil, "", 0.5)
 	if err != nil {
 		log.Fatalf("failed to generate maze: %v", err)
 	}
@@ -50,7 +50,7 @@ func ExampleMaze_Solve() {
 	}
 
 	// Generate the maze with a fixed seed for a predictable structure.
-	err = m.Generate(42, nil, nil, "", 0.5)
+	err = m.Generate(42, nil, nil, nil, "", 0.5)
 	if err != nil {
 		log.Fatalf("failed to generate maze: %v", err)
 	}

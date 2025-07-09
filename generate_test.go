@@ -14,6 +14,7 @@ func TestGenerate(t *testing.T) {
 		denWidth   int
 		denHeight  int
 		startPoint func(m *maze.Maze) *maze.Point // Use a function to get context-aware points
+		endPoint   func(m *maze.Maze) *maze.Point
 		doorSide   string
 		expectErr  bool
 		postCheck  func(t *testing.T, m *maze.Maze)
@@ -49,6 +50,42 @@ func TestGenerate(t *testing.T) {
 			startPoint: func(m *maze.Maze) *maze.Point {
 				// A point guaranteed to be inside the den
 				return &maze.Point{X: m.DenStartX() + 1, Y: m.DenStartY() + 1}
+			},
+			expectErr: true,
+		},
+		{
+			name:   "Successful generation with specified start and end",
+			width:  21,
+			height: 21,
+			startPoint: func(m *maze.Maze) *maze.Point {
+				return &maze.Point{X: 1, Y: 1}
+			},
+			endPoint: func(m *maze.Maze) *maze.Point {
+				return &maze.Point{X: 19, Y: 19}
+			},
+			expectErr: false,
+			postCheck: func(t *testing.T, m *maze.Maze) {
+				if m.Start() != (maze.Point{X: 1, Y: 1}) {
+					t.Errorf("Expected start point to be {1, 1}, got %+v", m.Start())
+				}
+				if m.End() != (maze.Point{X: 19, Y: 19}) {
+					t.Errorf("Expected end point to be {19, 19}, got %+v", m.End())
+				}
+				_, found := m.Solve()
+				if !found {
+					t.Error("Generated maze with specified start/end should be solvable")
+				}
+			},
+		},
+		{
+			name:   "Start and end points are the same",
+			width:  21,
+			height: 21,
+			startPoint: func(m *maze.Maze) *maze.Point {
+				return &maze.Point{X: 5, Y: 5}
+			},
+			endPoint: func(m *maze.Maze) *maze.Point {
+				return &maze.Point{X: 5, Y: 5}
 			},
 			expectErr: true,
 		},
@@ -132,9 +169,13 @@ func TestGenerate(t *testing.T) {
 			if tc.startPoint != nil {
 				start = tc.startPoint(m)
 			}
+			var end *maze.Point
+			if tc.endPoint != nil {
+				end = tc.endPoint(m)
+			}
 
 			// Use a fixed seed for reproducibility
-			err = m.Generate(1, start, nil, tc.doorSide, 0.5)
+			err = m.Generate(1, start, end, nil, tc.doorSide, 0.5)
 
 			if tc.expectErr {
 				if err == nil {

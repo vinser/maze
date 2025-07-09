@@ -18,6 +18,7 @@ Gemini Code Assisted
 -   Customizable maze dimensions (`--width`, `--height`).
 -   Configurable central room/den (`--denWidth`, `--denHeight`).
 -   Guaranteed door placement on the den (`--doorSide`, `--doorX`, `--doorY`).
+-   Specify start and end points (`--startX`, `--startY`, `--endX`, `--endY`).
 -   Adjustable corridor "straightness" with a bias parameter (`--bias`).
 -   Built-in solver that can display a partial or full solution path (`--solveRatio`).
 -   Reproducible maze generation using seeds (`--seed`).
@@ -61,6 +62,12 @@ mazegen --width=41 --height=21 --denWidth=11 --denHeight=7 --doorSide=top
 #### Generate and Show 50% of the Solution
 
 ```bash
+mazegen --width=31 --height=15 --startX=1 --startY=1 --endX=29 --endY=13
+```
+
+#### Generate and Show 50% of the Solution
+
+```bash
 mazegen --width=41 --height=21 --solveRatio=0.5
 ```
 
@@ -86,6 +93,10 @@ mazegen --width=51 --height=25 --seed=1337 --bias=0.95
     	The X coordinate for the den door. If 0, a random door is chosen.
   -doorY int
     	The Y coordinate for the den door. If 0, a random door is chosen.
+  -endX int
+		The X coordinate for the maze end point. If 0, a random point is chosen.
+  -endY int
+		The Y coordinate for the maze end point. If 0, a random point is chosen.
   -height int
     	The height of the maze (default 21)
   -seed int64
@@ -124,7 +135,8 @@ func main() {
 	}
 	// Generate the maze paths with a fixed seed for reproducibility
 	// and a bias for straighter corridors.
-	err = m.Generate(1337, nil, nil, "", 0.95)
+	// Start and end points can be specified, or nil for random placement.
+	err = m.Generate(1337, nil, nil, nil, "", 0.95)
 	if err != nil {
 		log.Fatalf("failed to generate maze: %v", err)
 	}

@@ -20,6 +20,8 @@ func main() {
 	seed := flag.Int64("seed", 0, "Seed for the random number generator. If 0, uses current time.")
 	startX := flag.Int("startX", 0, "The X coordinate for the generation start point. If 0, a random point is chosen.")
 	startY := flag.Int("startY", 0, "The Y coordinate for the generation start point. If 0, a random point is chosen.")
+	endX := flag.Int("endX", 0, "The X coordinate for the maze end point. If 0, a random point is chosen.")
+	endY := flag.Int("endY", 0, "The Y coordinate for the maze end point. If 0, a random point is chosen.")
 	doorX := flag.Int("doorX", 0, "The X coordinate for the den door. If 0, a random door is chosen.")
 	doorY := flag.Int("doorY", 0, "The Y coordinate for the den door. If 0, a random door is chosen.")
 	doorSide := flag.String("doorSide", "", "Side for the den door (top, bottom, left, right). Overrides --doorX/Y.")
@@ -44,6 +46,11 @@ func main() {
 		startPoint = &maze.Point{X: *startX, Y: *startY}
 	}
 
+	var endPoint *maze.Point
+	if *endX > 0 && *endY > 0 {
+		endPoint = &maze.Point{X: *endX, Y: *endY}
+	}
+
 	var doorPoint *maze.Point
 	// doorSide takes precedence over doorX/Y
 	if *doorSide == "" && *doorX > 0 && *doorY > 0 {
@@ -51,7 +58,7 @@ func main() {
 	}
 
 	// Generate the maze paths
-	if err := m.Generate(genSeed, startPoint, doorPoint, *doorSide, *bias); err != nil {
+	if err := m.Generate(genSeed, startPoint, endPoint, doorPoint, *doorSide, *bias); err != nil {
 		log.Fatalf("Error generating maze: %v", err)
 	}
 
