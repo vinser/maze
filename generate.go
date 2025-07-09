@@ -300,11 +300,9 @@ func (m *Maze) carvePathToNearest(start Point) error {
 	pathFound := false
 
 	head := 0
-head_loop:
-	for head < len(queue) {
+	for head < len(queue) && !pathFound {
 		current := queue[head]
 		head++
-
 		// Explore neighbors
 		for _, dir := range []Point{{0, -1}, {0, 1}, {-1, 0}, {1, 0}} {
 			next := Point{X: current.X + dir.X, Y: current.Y + dir.Y}
@@ -319,7 +317,7 @@ head_loop:
 				parent[next] = current
 				targetPath = next
 				pathFound = true
-				break head_loop // Exit the outer loop
+				break // Exit the inner neighbor-exploration loop
 			}
 
 			// Otherwise, if it's a wall we haven't visited, add it to the queue.
