@@ -28,21 +28,28 @@ func (m *Maze) Generate(seed int64, start, end *Point, door *Point, doorSide str
 	}
 
 	// 2. Choose a starting point for the generation algorithm.
+	// Priority: user-specified start > user-specified end > random.
+	// This ensures that any user-provided point is part of the generated maze.
 	if start != nil {
 		generationStart = *start
+	} else if end != nil {
+		generationStart = *end
 	} else {
-		// Choose a random starting point (must be on a path cell, so odd coordinates).
-		// Loop until we find a point that is not inside the den.
-		for {
-			startX := r.Intn((m.width-1)/2)*2 + 1
-			startY := r.Intn((m.height-1)/2)*2 + 1
-			p := Point{X: startX, Y: startY}
-			// Also ensure the random start isn't the user-specified end point.
-			if !m.IsInsideDen(p) && (end == nil || p != *end) {
-				generationStart = p
-				break
+		// Both start and end are nil, so choose a random starting point.
+		// It must be on a path cell (odd coordinates) and not inside the den.
+		var potentialStarts []Point
+		for y := 1; y < m.height-1; y += 2 {
+			for x := 1; x < m.width-1; x += 2 {
+				p := Point{X: x, Y: y}
+				if !m.IsInsideDen(p) {
+					potentialStarts = append(potentialStarts, p)
+				}
 			}
 		}
+		if len(potentialStarts) == 0 {
+			return fmt.Errorf("could not find a valid random starting point for generation; maze may be too small or constrained")
+		}
+		generationStart = potentialStarts[r.Intn(len(potentialStarts))]
 	}
 
 	// 3. Run the generation algorithm.
