@@ -80,15 +80,12 @@ func renderMaze(m *maze.Maze, path []maze.Point, ratio float64) string {
 	solutionPoints := make(map[maze.Point]bool)
 	if path != nil && ratio >= 0.0 {
 		pathLength := len(path)
-		if pathLength > 1 {
-			numEdges := pathLength - 1
-			// Use Ceil to ensure that even for small ratios > 0, at least one step is shown.
-			numPointsToMark := int(math.Ceil(float64(numEdges) * ratio))
-
-			for i := 1; i < 1+numPointsToMark; i++ {
-				if i < len(path) {
-					solutionPoints[path[i]] = true
-				}
+		if pathLength > 0 {
+			// Determine how many points of the path to show, starting after the 'S'.
+			// math.Ceil ensures that for any ratio > 0, at least one step is shown.
+			pointsToShow := int(math.Ceil(float64(pathLength-1) * ratio))
+			for i := 1; i <= pointsToShow && i < pathLength; i++ {
+				solutionPoints[path[i]] = true
 			}
 		}
 	}
